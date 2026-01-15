@@ -2,7 +2,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { ExamType, Subject, Grade, Lesson, GenerationMode, MatrixConfig, ExamQuestion, GradingTableData } from "../types";
 import mammoth from "mammoth";
 
-const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+const getAI = () => new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
 
 const cleanJsonString = (str: string): string => {
   try {
@@ -44,8 +44,8 @@ const fileToPart = async (file: File): Promise<any> => {
 };
 
 export const validateApiKey = async (): Promise<{ valid: boolean; error?: string }> => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) return { valid: false, error: "Chưa cấu hình API_KEY hệ thống." };
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return { valid: false, error: "Chưa cấu hình GEMINI_API_KEY hệ thống." };
   try {
     const ai = getAI();
     const response = await ai.models.generateContent({ 
