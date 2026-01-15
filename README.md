@@ -1,20 +1,17 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# 7991 AI Pro - Bring Your Own API Key (BYOK)
 
-# Run and deploy your AI Studio app
+## Security Architecture
+This application follows a strict **Client-Side Only** architecture to ensure maximum privacy for educators.
 
-This contains everything you need to run your app locally.
+1. **Zero Server Persistence**: Your Gemini API Key is never sent to our servers. We do not have a backend database or request logging system that sees your key.
+2. **Local Storage**: The key is stored solely in your browser's `localStorage`. Clearing your browser data or clicking "Clear Key" in the app permanently removes it from your device.
+3. **Direct Communication**: All AI requests are made directly from your browser to Google's Gemini API endpoints.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1H3eAlb9Pt0MbK5BwYGy8Tslygg3KXvpJ
+## Risks & Mitigations
+- **Browser Security**: If someone else has physical access to your unlocked computer, they could potentially retrieve the key from your browser's developer tools.
+- **Mitigation**: Always lock your computer when away and use the "Clear Key" feature if using a shared workstation.
 
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Vercel Deployment
+This app is ready to be deployed to Vercel as a static site.
+- No environment variables are required on the server side.
+- Users configure their own keys upon first use.
