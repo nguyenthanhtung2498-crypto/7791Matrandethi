@@ -24,8 +24,8 @@ const fileToPart = async (file: File): Promise<any> => {
 };
 
 export const validateApiKey = async (): Promise<{ valid: boolean; error?: string }> => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) return { valid: false, error: "Thiếu biến môi trường API_KEY trên hệ thống." };
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return { valid: false, error: "Thiếu biến môi trường GEMINI_API_KEY trên hệ thống." };
   try {
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({ 
@@ -39,7 +39,7 @@ export const validateApiKey = async (): Promise<{ valid: boolean; error?: string
 };
 
 export const analyzeFilesForLessons = async (pl1File: File, pl3File: File, examType: ExamType, subject: Subject, grade: Grade): Promise<Lesson[]> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
   const pl3Part = await fileToPart(pl3File);
   const prompt = `Bạn là chuyên gia phân tích chương trình học. Phân tích Phụ lục III môn ${subject} (${grade}) cho kỳ thi ${examType}. 
   Hãy trích xuất danh sách bài học bao gồm: Cột Số tiết (periods), Tên bài, Tên chương, Tuần dạy.
@@ -56,7 +56,7 @@ export const analyzeFilesForLessons = async (pl1File: File, pl3File: File, examT
 };
 
 export const generateMatrixAndOutcomes = async (lessons: Lesson[], examType: ExamType, subject: Subject, grade: Grade, pl1File: File, mConfig: MatrixConfig): Promise<any> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
   const pl1Part = await fileToPart(pl1File);
   const totalPeriods = lessons.reduce((acc, l) => acc + (l.periods || 1), 0);
 
@@ -86,7 +86,7 @@ export const generateMatrixAndOutcomes = async (lessons: Lesson[], examType: Exa
 };
 
 export const generateExamAndGuide = async (matrix: any, subject: Subject, grade: Grade, mode: GenerationMode, mConfig: MatrixConfig, sgkFiles: File[]): Promise<{questions: ExamQuestion[], guide: GradingTableData}> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
   const sgkParts = await Promise.all(sgkFiles.map(f => fileToPart(f)));
   
   const prompt = `Soạn đề thi và hướng dẫn chấm môn ${subject} - ${grade} dựa trên ma trận: ${JSON.stringify(matrix)}.
