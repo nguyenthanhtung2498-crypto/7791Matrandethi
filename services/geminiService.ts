@@ -23,8 +23,9 @@ const fileToPart = async (file: File): Promise<any> => {
   });
 };
 
-export const validateApiKey = async (apiKey: string): Promise<{ valid: boolean; error?: string }> => {
-  if (!apiKey) return { valid: false, error: "Chưa nhập mã API Key." };
+export const validateApiKey = async (): Promise<{ valid: boolean; error?: string }> => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) return { valid: false, error: "Thiếu biến môi trường API_KEY trên hệ thống." };
   try {
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({ 
@@ -37,8 +38,8 @@ export const validateApiKey = async (apiKey: string): Promise<{ valid: boolean; 
   }
 };
 
-export const analyzeFilesForLessons = async (apiKey: string, pl1File: File, pl3File: File, examType: ExamType, subject: Subject, grade: Grade): Promise<Lesson[]> => {
-  const ai = new GoogleGenAI({ apiKey });
+export const analyzeFilesForLessons = async (pl1File: File, pl3File: File, examType: ExamType, subject: Subject, grade: Grade): Promise<Lesson[]> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
   const pl3Part = await fileToPart(pl3File);
   const prompt = `Bạn là chuyên gia phân tích chương trình học. Phân tích Phụ lục III môn ${subject} (${grade}) cho kỳ thi ${examType}. 
   Hãy trích xuất danh sách bài học bao gồm: Cột Số tiết (periods), Tên bài, Tên chương, Tuần dạy.
@@ -54,11 +55,10 @@ export const analyzeFilesForLessons = async (apiKey: string, pl1File: File, pl3F
   return raw.map((l: any) => ({ ...l, id: Math.random().toString(36).substr(2, 9), selected: true }));
 };
 
-export const generateMatrixAndOutcomes = async (apiKey: string, lessons: Lesson[], examType: ExamType, subject: Subject, grade: Grade, pl1File: File, mConfig: MatrixConfig): Promise<any> => {
-  const ai = new GoogleGenAI({ apiKey });
+export const generateMatrixAndOutcomes = async (lessons: Lesson[], examType: ExamType, subject: Subject, grade: Grade, pl1File: File, mConfig: MatrixConfig): Promise<any> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
   const pl1Part = await fileToPart(pl1File);
   const totalPeriods = lessons.reduce((acc, l) => acc + (l.periods || 1), 0);
-  const isFinal = examType.toLowerCase().includes("cuối kì");
 
   const prompt = `Lập ma trận đề thi 10 điểm cho môn ${subject} (${grade}) dựa trên danh sách bài học: ${JSON.stringify(lessons)}.
   
@@ -76,14 +76,17 @@ export const generateMatrixAndOutcomes = async (apiKey: string, lessons: Lesson[
   const response = await ai.models.generateContent({ 
     model: 'gemini-3-pro-preview', 
     contents: { parts: [pl1Part, { text: prompt }] }, 
-    config: { responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 24000 } } 
+    config: { 
+      responseMimeType: "application/json", 
+      thinkingConfig: { thinkingBudget: 24000 } 
+    } 
   });
   
   return JSON.parse(cleanJsonString(response.text));
 };
 
-export const generateExamAndGuide = async (apiKey: string, matrix: any, subject: Subject, grade: Grade, mode: GenerationMode, mConfig: MatrixConfig, sgkFiles: File[]): Promise<{questions: ExamQuestion[], guide: GradingTableData}> => {
-  const ai = new GoogleGenAI({ apiKey });
+export const generateExamAndGuide = async (matrix: any, subject: Subject, grade: Grade, mode: GenerationMode, mConfig: MatrixConfig, sgkFiles: File[]): Promise<{questions: ExamQuestion[], guide: GradingTableData}> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
   const sgkParts = await Promise.all(sgkFiles.map(f => fileToPart(f)));
   
   const prompt = `Soạn đề thi và hướng dẫn chấm môn ${subject} - ${grade} dựa trên ma trận: ${JSON.stringify(matrix)}.
@@ -98,7 +101,7 @@ export const generateExamAndGuide = async (apiKey: string, matrix: any, subject:
        "id": "...", 
        "type": "MCQ/TF/SHORT/ESSAY", 
        "text": "Câu dẫn...", 
-       "options": { "A": "...", ... },
+       "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
        "tfStatements": { "a": "...", "b": "...", "c": "...", "d": "..." }
     } ], 
     "guide": { 
@@ -112,7 +115,10 @@ export const generateExamAndGuide = async (apiKey: string, matrix: any, subject:
   const response = await ai.models.generateContent({ 
     model: 'gemini-3-pro-preview', 
     contents: { parts: [...sgkParts, { text: prompt }] }, 
-    config: { responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 32000 } } 
+    config: { 
+      responseMimeType: "application/json", 
+      thinkingConfig: { thinkingBudget: 32000 } 
+    } 
   });
   
   return JSON.parse(cleanJsonString(response.text));

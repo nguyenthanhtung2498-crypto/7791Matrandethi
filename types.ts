@@ -116,7 +116,6 @@ export interface MatrixConfig {
 
 export interface AppState {
   currentPage: number;
-  apiKey: string;
   user: {
     username: string;
   } | null;
